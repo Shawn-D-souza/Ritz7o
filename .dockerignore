@@ -1,0 +1,36 @@
+# Git & Repository Metadata
+# The container doesn't need version history - dropping this saves massive context size
+.git/
+.gitignore
+
+# Host Dependencies
+# Forces the Docker build to cleanly install Linux-native modules via 'npm ci'
+node_modules/
+
+# Local Build Outputs
+# Stage 1 of your Dockerfile builds 'dist' internally; don't copy the host's version
+dist/
+build/
+
+# Secrets & Environment Variables
+# Prevents baking secrets into the image layers. Injected purely at runtime via docker-compose.
+.env
+.env.*
+*.pem
+
+# Documentation & Local Scripts
+README.md
+docs/
+tests/
+coverage/
+
+# OS & Editor Files
+.DS_Store
+.vscode/
+.idea/
+
+# Docker Configs
+# The container does not need to contain its own definitions
+Dockerfile
+docker-compose*.yml
+.dockerignore

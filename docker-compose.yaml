@@ -1,0 +1,36 @@
+services: 
+  ritz7o-bot:
+    container_name: ritz7o-bot
+    image: ritz7o-bot:0.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.10'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge

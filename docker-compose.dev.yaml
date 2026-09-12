@@ -1,0 +1,26 @@
+services: 
+  ritz7o-bot:
+    # Target the 'builder' stage so we have devDependencies available
+    build:
+      context: .
+      target: builder
+      
+    # Override the start command to use the hot-reloading script
+    command: npm run dev
+    
+    # Disable production security restrictions for development
+    security_opt: []
+    read_only: false
+    cap_drop: []
+    
+    # Docker Compose Watch configuration
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: sync
+          path: ./package.json
+          target: /app/package.json
+        - action: rebuild
+          path: ./package-lock.json

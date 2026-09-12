@@ -17,7 +17,8 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
       "How would you like to authenticate?",
       Markup.inlineKeyboard([
         [Markup.button.callback('Gemini API Key', 'auth_api_key')],
-        [Markup.button.callback('Gemini CLI (Antigravity)', 'auth_cli')]
+        [Markup.button.callback('Gemini CLI (Antigravity)', 'auth_cli')],
+        [Markup.button.callback('Quit', 'quit_wizard')]
       ])
     );
     return ctx.wizard.next();
@@ -37,6 +38,11 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
       await ctx.editMessageReplyMarkup(undefined);
     } catch (e) {
       console.warn("Could not remove inline keyboard", e);
+    }
+
+    if (choice === 'quit_wizard') {
+      await ctx.reply("Authentication canceled.");
+      return ctx.scene.leave();
     }
 
     // Store the choice in wizard state

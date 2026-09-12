@@ -53,3 +53,36 @@ export async function updateEmployeePreferences(telegramId: number, model: strin
   }
   return true;
 }
+
+export interface EmployeeCredentialInfo {
+  id: string;
+  provider: string;
+  auth_mode: string;
+}
+
+export async function getAvailableProviders(telegramId: number): Promise<EmployeeCredentialInfo[]> {
+  const { data, error } = await supabaseAdmin
+    .from('employee_credentials')
+    .select('id, provider, auth_mode')
+    .eq('telegram_id', telegramId);
+    
+  if (error) {
+    console.error(`[Vault Error] Failed to get available providers for ${telegramId}:`, error.message);
+    return [];
+  }
+  
+  return data as EmployeeCredentialInfo[];
+}
+
+export async function setActiveProvider(telegramId: number, credentialId: string): Promise<boolean> {
+  const { error } = await supabaseAdmin
+    .from('employee_active_settings')
+    .update({ active_credential_id: credentialId, updated_at: new Date().toISOString() })
+    .eq('telegram_id', telegramId);
+    
+  if (error) {
+    console.error(`[Vault Error] Failed to set active provider for ${telegramId}:`, error.message);
+    return false;
+  }
+  return true;
+}

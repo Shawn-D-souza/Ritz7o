@@ -210,11 +210,35 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
     }
 
     if (authMode === 'auth_api_key') {
-      const success = await storeEmployeeKey(telegramId, 'gemini', 'api_key', inputText);
-      if (success) {
-        await ctx.reply("✅ API Key securely encrypted and stored.");
-      } else {
-        await ctx.reply("❌ Failed to store key. Please contact the administrator.");
+      try {
+        // Send a quick message so the user knows it's being checked
+        const validationMsg = await ctx.reply("Validating API key...");
+
+        // Make a lightweight test request to verify the key
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${inputText}`);
+        
+        // Remove the validation message to keep chat clean
+        try {
+          await ctx.deleteMessage(validationMsg.message_id);
+        } catch (e) {
+          // Ignore if unable to delete
+        }
+
+        if (!response.ok) {
+          await ctx.reply("❌ That API key appears to be invalid or expired. Please try again with a valid key.");
+          return ctx.scene.leave();
+        }
+
+        // Key is valid, store it
+        const success = await storeEmployeeKey(telegramId, 'gemini', 'api_key', inputText);
+        if (success) {
+          await ctx.reply("✅ API Key verified, securely encrypted, and stored.");
+        } else {
+          await ctx.reply("❌ Failed to store key. Please contact the administrator.");
+        }
+      } catch (error) {
+        console.error(`[API Key Validation Error]`, error);
+        await ctx.reply("❌ Network error validating API key. Please try again later.");
       }
       return ctx.scene.leave();
 

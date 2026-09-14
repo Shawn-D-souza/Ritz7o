@@ -36,8 +36,19 @@ export async function handleChatMessage(ctx: BotContext) {
     return;
   }
 
-  // Send typing action
-  await ctx.sendChatAction('typing');
+  // Send typing action repeatedly since the process can take longer than 5 seconds
+  let typingInterval: NodeJS.Timeout;
+  const startTyping = () => {
+    ctx.sendChatAction('typing').catch(() => {});
+    typingInterval = setInterval(() => {
+      ctx.sendChatAction('typing').catch(() => {});
+    }, 4500);
+  };
+  const stopTyping = () => {
+    clearInterval(typingInterval);
+  };
+
+  startTyping();
 
   try {
     if (routing.provider === 'gemini') {
@@ -104,5 +115,7 @@ export async function handleChatMessage(ctx: BotContext) {
   } catch (error) {
     console.error(`[Chat Handler Error]`, error);
     await ctx.reply("An error occurred while generating the response. Please try again later.");
+  } finally {
+    stopTyping();
   }
 }

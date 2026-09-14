@@ -30,20 +30,53 @@ for (const cmd of COMMANDS) {
 bot.on('text', handleChatMessage);
 
 // Start & Authenticate
-bot.launch(async () => {
-  // Push commands to Telegram for native UI autocomplete
-  await bot.telegram.setMyCommands(
-    COMMANDS.map(c => ({ command: c.command, description: c.description }))
-  ).catch(err => console.warn('[Network Warn] Failed to sync commands to Telegram UI:', err));
-  
-  // Log network success using the auto-injected botInfo
-  console.log(`[Network Success] Orchestrator entrypoint running as @${bot.botInfo?.username}`);
-  
-}).catch((err) => {
-  // Catch fatal errors (like an invalid token) and crash the container
-  console.error(`[Network Fatal] Telegram rejected the connection:`, err.message);
-  process.exit(1);
-});
+const start = () => {
+  const onLaunch = () => {
+    // Log network success using the auto-injected botInfo FIRST so you see it instantly
+    console.log(`[Network Success] Orchestrator entrypoint running as @${bot.botInfo?.username}`);
+
+    // Push commands to Telegram for native UI autocomplete in the background
+    bot.telegram.setMyCommands(
+      COMMANDS.map(c => ({ command: c.command, description: c.description }))
+    ).catch(err => console.warn('[Network Warn] Failed to sync commands to Telegram UI:', err));
+  };
+
+  try {
+    const domain = process.env.WEBHOOK_DOMAIN;
+    let launchPromise;
+    
+    if (domain) {
+      const port = parseInt(process.env.PORT || '3000', 10);
+      // We use a secret path to prevent unauthorized POST requests
+      const hookPath = `/telegraf/${bot.secretPathComponent()}`;
+      
+      console.log(`[Network Success] Webhook server starting on port ${port} mapping to ${domain}${hookPath}`);
+      // Start webhook server using Telegraf's built-in support
+      launchPromise = bot.launch({
+        webhook: {
+          domain,
+          hookPath,
+          port,
+        },
+      }, onLaunch);
+    } else {
+      console.log(`[Network Success] Polling method starting (No WEBHOOK_DOMAIN provided)`);
+      // Fallback to long polling if no domain is provided
+      launchPromise = bot.launch(onLaunch);
+    }
+
+    launchPromise.catch((err) => {
+      // Catch fatal errors (like an invalid token) and crash the container
+      console.error(`[Network Fatal] Telegram rejected the connection:`, err instanceof Error ? err.message : String(err));
+      process.exit(1);
+    });
+  } catch (err) {
+    console.error(`[Network Fatal] Telegram rejected the connection:`, err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  }
+};
+
+start();
 
 // Graceful Shutdown (catches Docker signals)
 process.once('SIGINT', () => bot.stop('SIGINT'));

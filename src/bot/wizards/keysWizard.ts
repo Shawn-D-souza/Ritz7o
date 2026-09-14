@@ -49,10 +49,11 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
     (ctx.wizard.state as any).authMode = choice;
 
     if (choice === 'auth_api_key') {
-      await ctx.reply(
+      const msg = await ctx.reply(
         "Please provide your Gemini API key. This will be stored securely in the Vault.",
         Markup.inlineKeyboard([[Markup.button.callback('Quit', 'quit_wizard')]])
       );
+      (ctx.wizard.state as any).promptMessageId = msg.message_id;
       return ctx.wizard.next();
 
     } else if (choice === 'auth_cli') {
@@ -123,7 +124,9 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
             ctx.reply(
               `Please log in using this link:\n\n${urlMatch[0]}\n\nAfter logging in, you will be given an alphanumeric auth code in your browser. Paste that code here.`,
               Markup.inlineKeyboard([[Markup.button.callback('Quit', 'quit_wizard')]])
-            );
+            ).then(msg => {
+              (ctx.wizard.state as any).promptMessageId = msg.message_id;
+            }).catch(() => {});
             urlSent = true;
           }
         }
@@ -194,6 +197,16 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
       await ctx.deleteMessage(ctx.message.message_id);
     } catch (e) {
       console.warn("Could not delete message. Bot might lack message deletion permissions.");
+    }
+
+    // Delete the prompt message (which contains the Quit button) to clean up the chat
+    const promptMessageId = (ctx.wizard.state as any).promptMessageId;
+    if (promptMessageId) {
+      try {
+        await ctx.deleteMessage(promptMessageId);
+      } catch (e) {
+        console.warn("Could not delete prompt message.", e);
+      }
     }
 
     if (authMode === 'auth_api_key') {

@@ -3,6 +3,7 @@ import { BotContext } from './types/bot.js';
 import { allowlistMiddleware } from './bot/middlewares/allowlist.js';
 import { keysWizard } from './bot/wizards/keysWizard.js';
 import { COMMANDS } from './bot/commands/index.js';
+import { handleChatMessage } from './bot/handlers/chat.js';
 
 // Parse configuration once at the top level
 const ALLOWED_IDS = (process.env.ALLOWED_TELEGRAM_IDS || '')
@@ -24,6 +25,9 @@ bot.use(stage.middleware());
 for (const cmd of COMMANDS) {
   cmd.setup(bot, COMMANDS);
 }
+
+// Handle chat messages
+bot.on('text', handleChatMessage);
 
 // Start & Authenticate
 bot.launch(async () => {

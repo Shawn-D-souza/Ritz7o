@@ -232,7 +232,7 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
         // Key is valid, store it
         const success = await storeEmployeeKey(telegramId, 'gemini', 'api_key', inputText);
         if (success) {
-          await ctx.reply("✅ API Key verified, securely encrypted, and stored.");
+          await ctx.reply("✅ API Key verified, securely encrypted, and stored.\n\n⚠️ Important: You must now run the /model command to choose an AI model before you can start chatting.");
         } else {
           await ctx.reply("❌ Failed to store key. Please contact the administrator.");
         }
@@ -283,7 +283,7 @@ export const keysWizard = new Scenes.WizardScene<BotContext>(
               const success = await storeEmployeeKey(telegramId, 'agy', 'cli_oauth', credContent);
               
               if (success) {
-                await ctx.reply("✅ Authentication successful. Session securely encrypted and stored.");
+                await ctx.reply("✅ Authentication successful. Session securely encrypted and stored.\n\n⚠️ Important: You must now run the /model command to choose an AI model before you can start chatting.");
               } else {
                 await ctx.reply("❌ Failed to securely store session in Vault. Please contact the administrator.");
               }

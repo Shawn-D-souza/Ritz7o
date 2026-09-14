@@ -4,8 +4,8 @@ export interface EmployeeRouting {
   provider: string;
   auth_mode: string;
   secret_value: string;
-  selected_model: string;
-  thinking_effort: string;
+  selected_model: string | null;
+  thinking_effort: string | null;
 }
 
 export async function storeEmployeeKey(telegramId: number, provider: string, authMode: string, apiKey: string): Promise<boolean> {

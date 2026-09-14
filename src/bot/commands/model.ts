@@ -65,7 +65,7 @@ export function setupModelCommand(bot: Telegraf<BotContext>) {
         ctx.chat.id,
         loadingMsg.message_id,
         undefined,
-        `Choose a model for ${activeRouting.provider}:\n(Currently selected: ${activeRouting.selected_model})`,
+        `Choose a model for ${activeRouting.provider}:\n(Currently selected: ${activeRouting.selected_model || 'None'})`,
         Markup.inlineKeyboard(buttons)
       );
 

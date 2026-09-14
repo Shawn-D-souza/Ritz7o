@@ -9,7 +9,7 @@ export interface EmployeeRouting {
 }
 
 export async function storeEmployeeKey(telegramId: number, provider: string, authMode: string, apiKey: string): Promise<boolean> {
-  const { error } = await supabaseAdmin.rpc('set_employee_credential', {
+  const { error } = await supabaseAdmin.rpc('set_user_key', {
     p_telegram_id: telegramId,
     p_provider: provider,
     p_auth_mode: authMode,
@@ -24,7 +24,7 @@ export async function storeEmployeeKey(telegramId: number, provider: string, aut
 }
 
 export async function getEmployeeActiveRouting(telegramId: number): Promise<EmployeeRouting | null> {
-  const { data, error } = await supabaseAdmin.rpc('get_employee_active_routing', {
+  const { data, error } = await supabaseAdmin.rpc('get_active_user_key', {
     p_telegram_id: telegramId
   });
 
@@ -40,9 +40,11 @@ export async function getEmployeeActiveRouting(telegramId: number): Promise<Empl
   return data[0] as EmployeeRouting;
 }
 
-export async function updateEmployeePreferences(telegramId: number, model: string | null, effort: string | null): Promise<boolean> {
-  const { error } = await supabaseAdmin.rpc('update_employee_preferences', {
+export async function updateEmployeePreferences(telegramId: number, provider: string, authMode: string, model: string | null, effort: string | null): Promise<boolean> {
+  const { error } = await supabaseAdmin.rpc('update_user_key_settings', {
     p_telegram_id: telegramId,
+    p_provider: provider,
+    p_auth_mode: authMode,
     p_model: model,
     p_effort: effort
   });
@@ -62,7 +64,7 @@ export interface EmployeeCredentialInfo {
 
 export async function getAvailableProviders(telegramId: number): Promise<EmployeeCredentialInfo[]> {
   const { data, error } = await supabaseAdmin
-    .from('employee_credentials')
+    .from('user_keys')
     .select('id, provider, auth_mode')
     .eq('telegram_id', telegramId);
     
@@ -74,11 +76,12 @@ export async function getAvailableProviders(telegramId: number): Promise<Employe
   return data as EmployeeCredentialInfo[];
 }
 
-export async function setActiveProvider(telegramId: number, credentialId: string): Promise<boolean> {
-  const { error } = await supabaseAdmin
-    .from('employee_active_settings')
-    .update({ active_credential_id: credentialId, updated_at: new Date().toISOString() })
-    .eq('telegram_id', telegramId);
+export async function setActiveProvider(telegramId: number, provider: string, authMode: string): Promise<boolean> {
+  const { error } = await supabaseAdmin.rpc('set_active_user_key', {
+    p_telegram_id: telegramId,
+    p_provider: provider,
+    p_auth_mode: authMode
+  });
     
   if (error) {
     console.error(`[Vault Error] Failed to set active provider for ${telegramId}:`, error.message);

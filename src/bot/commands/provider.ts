@@ -32,7 +32,7 @@ export function setupProviderCommand(bot: Telegraf<BotContext>) {
         if (activeRouting && activeRouting.provider === p.provider && activeRouting.auth_mode === p.auth_mode) {
           label += ' ✅';
         }
-        buttons.push([Markup.button.callback(label, `setprovider_${p.id}`)]);
+        buttons.push([Markup.button.callback(label, `setprovider_${p.provider}_${p.auth_mode}`)]);
       }
       
       buttons.push([Markup.button.callback('❌ Cancel', 'setprovider_cancel')]);
@@ -55,22 +55,26 @@ export function setupProviderCommand(bot: Telegraf<BotContext>) {
     }
   });
 
-  bot.action(/^setprovider_(.+)$/, async (ctx) => {
+  bot.action('setprovider_cancel', async (ctx) => {
+    try {
+      await ctx.editMessageReplyMarkup(undefined);
+    } catch (e) {}
+    await ctx.editMessageText('❌ Connection selection cancelled.');
+    await ctx.answerCbQuery();
+  });
+
+  bot.action(/^setprovider_(.+?)_(.+)$/, async (ctx) => {
     const telegramId = ctx.from.id;
-    const providerId = ctx.match[1];
-    if (!providerId) return;
+    const provider = ctx.match[1];
+    const authMode = ctx.match[2];
+    if (!provider || !authMode) return;
     
     // Remove buttons immediately when choice is made
     try {
       await ctx.editMessageReplyMarkup(undefined);
     } catch (e) {}
 
-    if (providerId === 'cancel') {
-      await ctx.editMessageText('❌ Connection selection cancelled.');
-      return;
-    }
-
-    const success = await setActiveProvider(telegramId, providerId);
+    const success = await setActiveProvider(telegramId, provider, authMode);
 
     if (success) {
       await ctx.editMessageText(`✅ Active connection successfully switched! Use /model to pick a model.`);

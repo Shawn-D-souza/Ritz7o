@@ -98,7 +98,13 @@ export function setupModelCommand(bot: Telegraf<BotContext>) {
       return;
     }
 
-    const success = await updateEmployeePreferences(telegramId, modelId, null); // Effort is unaffected
+    const activeRouting = await getEmployeeActiveRouting(telegramId);
+    if (!activeRouting) {
+      await ctx.editMessageText('❌ No active connection found.');
+      return;
+    }
+
+    const success = await updateEmployeePreferences(telegramId, activeRouting.provider, activeRouting.auth_mode, modelId, null); // Effort is unaffected
 
     if (success) {
       await ctx.editMessageText(`✅ Active model successfully set to: <b>${modelId}</b>`, { parse_mode: 'HTML' });

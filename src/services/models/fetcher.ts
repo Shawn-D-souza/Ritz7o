@@ -64,8 +64,8 @@ export async function fetchAgyModels(oauthToken: string): Promise<ModelOption[]>
     
     return lines.map(line => {
       // The output format is: `model-id    Display Name`
-      // We'll split by at least two spaces to separate the ID from the name
-      const parts = line.trim().split(/\s{2,}/);
+      // We'll split by a tab or at least two spaces to separate the ID from the name
+      const parts = line.trim().split(/\t|\s{2,}/);
       const id = parts[0] ?? 'unknown';
       const name = parts.length > 1 ? parts.slice(1).join(' ').trim() : id;
       

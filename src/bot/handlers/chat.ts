@@ -73,7 +73,8 @@ export async function handleChatMessage(ctx: BotContext) {
         await fs.mkdir(geminiDir, { recursive: true });
         await fs.writeFile(path.join(geminiDir, 'antigravity-oauth-token'), routing.secret_value, 'utf8');
 
-        const args = ['--print', inputText, '--model', routing.selected_model];
+        const actualModelId = (routing.selected_model.split('\t')[0] || '').trim();
+        const args = ['--print', inputText, '--model', actualModelId];
         if (routing.thinking_effort) {
           args.push('--effort', routing.thinking_effort);
         }

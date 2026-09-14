@@ -14,8 +14,7 @@ RUN npm run build
 
 # Stage 2: Production environment
 FROM node:24-slim AS runner
-# Install dumb-init for proper signal handling
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init \
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the agy binary from the builder stage into the system path

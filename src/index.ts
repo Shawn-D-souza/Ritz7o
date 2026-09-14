@@ -42,7 +42,7 @@ const start = () => {
   };
 
   try {
-    const domain = process.env.WEBHOOK_DOMAIN;
+    const domain = process.env.WEBHOOK_DOMAIN || process.env.RENDER_EXTERNAL_URL;
     let launchPromise;
     
     if (domain) {
